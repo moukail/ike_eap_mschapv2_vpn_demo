@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">IkeVpnDemo</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="vpn_server">server</string>
+    <string name="username">username</string>
+    <string name="password">password</string>
+</resources>

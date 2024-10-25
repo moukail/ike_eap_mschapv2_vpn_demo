@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Shield background -->
+    <path
+        android:fillColor="#1976D2"
+        android:pathData="M12,2 L5,5 V12 C5,16.52 8.73,20.73 12,22 C15.27,20.73 19,16.52 19,12 V5 L12,2 Z"/>
+
+    <!-- Key symbol -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M15.5,9 C14.67,9 14,9.67 14,10.5 C14,11.33 14.67,12 15.5,12 C16.33,12 17,11.33 17,10.5 C17,9.67 16.33,9 15.5,9 Z M12,14 C12,13.45 11.55,13 11,13 L8,13 L8,14.5 L7,14.5 C6.45,14.5 6,14.95 6,15.5 C6,16.05 6.45,16.5 7,16.5 L7,18 C7,18.55 7.45,19 8,19 C8.55,19 9,18.55 9,18 L9,16.5 L11,16.5 C11.55,16.5 12,16.05 12,15.5 C12,15.22 11.91,14.97 11.76,14.76 C11.85,14.52 12,14.27 12,14 Z"/>
+</vector>
