@@ -5,12 +5,10 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.content.res.Resources
 import android.net.ConnectivityManager
 import android.net.Ikev2VpnProfile
 import android.net.Network
 import android.net.NetworkCapabilities
-import android.net.NetworkRequest
 import android.net.VpnManager
 import android.net.VpnService
 import android.net.eap.EapSessionConfig
@@ -25,7 +23,6 @@ import android.os.Build
 import android.system.OsConstants
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import androidx.core.content.res.ResourcesCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -38,18 +35,23 @@ class MyVpnService : VpnService() {
     // Network callback to detect VPN disconnection
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {
-            val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
-            if (networkCapabilities?.hasTransport(NetworkCapabilities.TRANSPORT_VPN) == true) {
-                Log.d(TAG, "VPN Connected")
+            if (isVpnNetwork(network)) {
+                Log.d(TAG, "networkCallback: VPN Connected")
+                sendVpnStatusBroadcast(true)
+                updateNotification("Connected")
             }
         }
 
         override fun onLost(network: Network) {
-            val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
-            if (networkCapabilities?.hasTransport(NetworkCapabilities.TRANSPORT_VPN) == true) {
-                Log.d(TAG, "VPN Disconnected")
+            if (isVpnNetwork(network)) {
+                Log.d(TAG, "networkCallback: VPN Disconnected")
                 stopVpn()
             }
+        }
+
+        private fun isVpnNetwork(network: Network): Boolean {
+            val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
+            return networkCapabilities?.hasTransport(NetworkCapabilities.TRANSPORT_VPN) == true
         }
     }
 
@@ -77,7 +79,6 @@ class MyVpnService : VpnService() {
         if (intent?.action == "DISCONNECT") {
             stopVpn()
         } else {
-            sendBroadcast(Intent(VpnStatusReceiver.ACTION_VPN_CONNECTED))
             establishVpn()
         }
 
@@ -85,7 +86,7 @@ class MyVpnService : VpnService() {
     }
 
     override fun onDestroy() {
-        Log.i(TAG, "onDestroy")
+        Log.d(TAG, "onDestroy")
         super.onDestroy()
         // Unregister the network callback when the service is destroyed
         connectivityManager.unregisterNetworkCallback(networkCallback)
@@ -183,17 +184,20 @@ class MyVpnService : VpnService() {
                 val tunnelConnectionParams = IkeTunnelConnectionParams(ikeSessionParams, childSessionParams)
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                val ikev2VpnProfile = Ikev2VpnProfile.Builder(tunnelConnectionParams)
-                    .build()
+                val ikev2VpnProfile = Ikev2VpnProfile.Builder(tunnelConnectionParams).build()
                 vpnManager.provisionVpnProfile(ikev2VpnProfile)
                 vpnManager.startProvisionedVpnProfileSession()
+            } else {
+                val ikev2VpnProfile = Ikev2VpnProfile.Builder(vpn_server, username)
+                    .setAuthUsernamePassword(username, password, null)
+                    .setBypassable(true)
+                    .setMaxMtu(1500)
+                    .build()
+                vpnManager.provisionVpnProfile(ikev2VpnProfile)
+                vpnManager.startProvisionedVpnProfile()
             }
-
-                Log.i("VPN", "VPN established")
-                updateNotification("Connected")
-                sendVpnStatusBroadcast(true)
             } catch (e: Exception) {
-                Log.e("VPN Error", "Failed to establish VPN: ${e.message}")
+                Log.e(TAG, "Failed to establish VPN: ${e.message}")
                 // Handle additional error processing here
             }
         }

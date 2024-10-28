@@ -72,13 +72,11 @@ class MainActivity : ComponentActivity() {
         vpnStatusReceiver = VpnStatusReceiver { connected -> isConnected.value = connected }
 
         val filter = IntentFilter().apply {
-            addAction("android.net.VpnService")
+            addAction("android.net.conn.CONNECTIVITY_CHANGE")
             addAction(VpnStatusReceiver.ACTION_VPN_CONNECTED)
             addAction(VpnStatusReceiver.ACTION_VPN_DISCONNECTED)
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(vpnStatusReceiver, filter, RECEIVER_EXPORTED)
-        }
+        registerReceiver(vpnStatusReceiver, filter, RECEIVER_EXPORTED)
 
         // UI
         enableEdgeToEdge()

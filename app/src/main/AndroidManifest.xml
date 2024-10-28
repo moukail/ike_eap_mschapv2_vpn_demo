@@ -3,11 +3,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="nl.moukafih.ike_vpn_demo">
 
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:allowBackup="true"
@@ -38,12 +38,5 @@
                 <action android:name="android.net.VpnService"/>
             </intent-filter>
         </service>
-            <!--<receiver android:name=".VpnStatusReceiver" android:exported="false">
-                <intent-filter>
-                    <action android:name="nl.moukafih.myvpn2.ACTION_VPN_CONNECTED" />
-                    <action android:name="nl.moukafih.myvpn2.ACTION_VPN_DISCONNECTED" />
-                </intent-filter>
-            </receiver>-->
     </application>
-
 </manifest>
