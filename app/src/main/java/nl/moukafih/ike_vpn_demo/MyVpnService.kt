@@ -65,8 +65,8 @@ class MyVpnService : VpnService() {
         connectivityManager.registerDefaultNetworkCallback(networkCallback)
 
         val serviceChannel = NotificationChannel(
-            "vpn_channel",
-            "VPN Service Channel",
+            "vpn_demo_channel",
+            "VPN Demo Service Channel",
             NotificationManager.IMPORTANCE_LOW
         )
 
@@ -118,8 +118,8 @@ class MyVpnService : VpnService() {
 
         val disconnectPendingIntent: PendingIntent = PendingIntent.getService(this, 0, disconnectIntent, PendingIntent.FLAG_IMMUTABLE)
 
-        val notification =  NotificationCompat.Builder(this, "vpn_channel")
-            .setContentTitle("VPN Status")
+        val notification =  NotificationCompat.Builder(this, "vpn_demo_channel")
+            .setContentTitle("VPN Demo Status")
             .setContentText(status)
             .setSmallIcon(R.drawable.ic_vpn)
             .setPriority(NotificationCompat.PRIORITY_LOW)

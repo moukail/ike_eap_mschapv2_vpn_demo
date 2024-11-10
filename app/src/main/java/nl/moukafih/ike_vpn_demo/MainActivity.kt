@@ -23,6 +23,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -30,8 +34,21 @@ import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.json.JSONObject
 
 class MainActivity : ComponentActivity() {
+
+    init {
+        System.loadLibrary("vpninfo")
+    }
+
+    private external fun getIpAddress(interfaceName: String): String
+
+    private external fun getVpnLocalIp(): String
+    external fun stringFromJNI(): String
+    external fun getNetworkInfo(): String
 
     private lateinit var vpnManager: VpnManager
     private val isConnected = MutableLiveData(false)
@@ -120,8 +137,67 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun getPublicIpAddress(): JSONObject? {
+
+        val statusObject = JSONObject();
+        statusObject.put("query", "")
+        statusObject.put("isp", "")
+
+        try {
+            val client = OkHttpClient()
+            val request = Request.Builder()
+                .url("https://myvpn.moukafih.nl/api/v1/status")
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) return statusObject.put("status", "Failed to fetch public IP")
+
+                response.body?.string()?.let {
+                    val jsonObject = JSONObject(it)
+                    return jsonObject
+                }
+            }
+            return statusObject.put("status", "Public IP not available")
+
+        } catch (e: Exception) {
+            // Log the error (optional) and return a fallback message
+            e.printStackTrace()
+            return statusObject.put("status", "Error retrieving public IP")
+        }
+    }
+
     @Composable
     fun VpnConnectButton(isConnected: Boolean) {
+
+        val networkInfo = remember { mutableStateOf("") }
+        val mobileNetworkInfo = remember { mutableStateOf("") }
+        val vpnLocalIp = remember { mutableStateOf("") }
+        val publicIp = remember { mutableStateOf("Fetching...") }
+        val internetProvider = remember { mutableStateOf("Fetching...") }
+        val proxy = remember { mutableStateOf("Fetching...") }
+        val continent = remember { mutableStateOf("Fetching...") }
+        val country = remember { mutableStateOf("Fetching...") }
+        val city = remember { mutableStateOf("Fetching...") }
+
+        val scope = rememberCoroutineScope()
+
+        LaunchedEffect(isConnected) {
+                Log.d(TAG, "LaunchedEffect")
+
+                vpnLocalIp.value = getIpAddress("ipsec")
+                networkInfo.value = getIpAddress("wlan0")
+                mobileNetworkInfo.value = getIpAddress("rmnet")
+
+                scope.launch(Dispatchers.IO) {
+                    publicIp.value = getPublicIpAddress()?.getString("query") ?: ""
+                    internetProvider.value = getPublicIpAddress()?.getString("isp") ?: ""
+                    proxy.value = getPublicIpAddress()?.getString("proxy") ?: ""
+                    continent.value = getPublicIpAddress()?.getString("continent") ?: ""
+                    country.value = getPublicIpAddress()?.getString("country") ?: ""
+                    city.value = getPublicIpAddress()?.getString("city") ?: ""
+                }
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -140,6 +216,24 @@ class MainActivity : ComponentActivity() {
             }) {
                 Text(text = if (isConnected) "Disconnect" else "Connect to VPN")
             }
+
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = "Public IP: ${publicIp.value}")
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = "Internet Provider: ${internetProvider.value}")
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = "Continent: ${continent.value}")
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = "Country: ${country.value}")
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = "City: ${city.value}")
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = "Local VPN IP: ${vpnLocalIp.value}")
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = "Mobile IP: ${mobileNetworkInfo.value}")
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = "Wifi local IP: ${networkInfo.value}")
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 
