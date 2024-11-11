@@ -6,6 +6,14 @@
 #include <netdb.h>
 
 extern "C" JNIEXPORT jstring JNICALL
+Java_nl_moukafih_mynative_MainActivity_stringFromJNI(
+        JNIEnv* env,
+        jobject /* this */) {
+    std::string hello = "Hello from C++";
+    return env->NewStringUTF(hello.c_str());
+}
+
+extern "C" JNIEXPORT jstring JNICALL
 Java_nl_moukafih_ike_1vpn_1demo_MainActivity_getVpnLocalIp(JNIEnv *env, jobject) {
     std::string result;
     struct ifaddrs *ifaddr, *ifa;
@@ -24,7 +32,7 @@ Java_nl_moukafih_ike_1vpn_1demo_MainActivity_getVpnLocalIp(JNIEnv *env, jobject)
             std::string(ifa->ifa_name).find("ipsec") != std::string::npos) {
 
             family = ifa->ifa_addr->sa_family;
-            if (family == AF_INET) {
+            if (family == AF_INET || family == AF_INET6) {
                 char host[NI_MAXHOST];
                 int s = getnameinfo(ifa->ifa_addr,
                                     sizeof(struct sockaddr_in),
